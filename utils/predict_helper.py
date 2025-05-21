@@ -9,6 +9,13 @@ features = ["Close"]
 CLOSE_IDX = features.index("Close")
 SEQ_LEN = 60
 
+def create_sequences_api(data, seq_len=SEQ_LEN):
+    X = []
+    for i in range(len(data) - seq_len):
+        X.append(data[i:i+seq_len])
+    return np.array(X)
+
+
 def preprocess_api(
     ticker: str,
     data: pd.DataFrame,
@@ -36,8 +43,8 @@ def preprocess_api(
 def predict_price(
     model_path: str,
     scaler_path: str,
-    data: np.array,
-) -> np.array:
+    data: np.ndarray,
+) -> np.ndarray:
     """
     Predict the price of the stock
 
