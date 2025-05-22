@@ -1,0 +1,9 @@
+LCID: GRU
+
+LYFT: GRU
+
+NVDA: LSTM
+
+QBTS: GRU
+
+TSLA: GRU

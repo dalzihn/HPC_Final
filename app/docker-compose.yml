@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    deploy:
+      replicas: 3
+      placement:
+        constraints: [node.role == worker]
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 2
+        delay: 10s
+        failure_action: rollback
+    depends_on:
+      - redis
+
+  frontend:
+    build:
+      dockerfile: web.Dockerfile
+    ports:
+      - "3000:80"
+    deploy:
+      replicas: 3
+      placement:
+        constraints: [node.role == worker]
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 2
+        delay: 10s
+        failure_action: rollback
+    depends_on:
+      - backend
+
+  redis:
+    image: redis
+    deploy:
+      replicas: 3
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 2
+        delay: 10s
+        failure_action: rollback
+
+  
