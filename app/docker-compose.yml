@@ -2,14 +2,12 @@ version: '3.8'
 
 services:
   backend:
-    build:
-      dockerfile: Dockerfile
+    image: dalzihn/hpc_group02_backend
     ports:
       - "8000:8000"
+      - "8001:8080"
     deploy:
-      replicas: 3
-      placement:
-        constraints: [node.role == worker]
+      replicas: 2
       restart_policy:
         condition: on-failure
       update_config:
@@ -20,14 +18,12 @@ services:
       - redis
 
   frontend:
-    build:
-      dockerfile: web.Dockerfile
+    image: dalzihn/hpc_group02_frontend
     ports:
       - "3000:80"
+      - "3001:80"
     deploy:
-      replicas: 3
-      placement:
-        constraints: [node.role == worker]
+      replicas: 2
       restart_policy:
         condition: on-failure
       update_config:
@@ -38,11 +34,9 @@ services:
       - backend
 
   redis:
-    image: redis
+    image: redis:7.0.10
     deploy:
-      replicas: 3
-      placement:
-        constraints: [node.role == manager]
+      replicas: 2
       restart_policy:
         condition: on-failure
       update_config:
