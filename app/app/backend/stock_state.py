@@ -41,7 +41,7 @@ class StockInfor(rx.State):
         low = raw_data["Low"]
         volume = raw_data["Volume"]
 
-        return [[date[i], round(close[i],2), round(open[i],2), round(high[i],2), round(low[i],2), volume[i]] for i in range(OUTPUT_LEN)]
+        return [[date[-i], round(close[-i],2), round(open[-i],2), round(high[-i],2), round(low[-i],2), volume[-i]] for i in range(1, OUTPUT_LEN+1)]
             
         
     def set_ticker(self, value: str):
@@ -50,6 +50,8 @@ class StockInfor(rx.State):
     async def handle_submit(self):
         import httpx 
         async with httpx.AsyncClient() as client:
+            # predict_response = await client.post(f"http://backend:8000/predict/{self.ticker}")
+            # crawl_response = await client.get(f"http://backend:8000/crawl/{self.ticker}")
             predict_response = await client.post(f"http://localhost:8000/predict/{self.ticker}")
             crawl_response = await client.get(f"http://localhost:8000/crawl/{self.ticker}")
             if predict_response.status_code == 200:
