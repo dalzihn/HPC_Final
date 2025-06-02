@@ -1,10 +1,13 @@
 import reflex as rx
+import asyncio
+import os
 OUTPUT_LEN = 7
 
 class StockInfor(rx.State):
     ticker: str = ""
     predict_result: dict = {}
     crawl_result: dict = {}
+    is_loading: bool = False
     
     @rx.var
     def line_data(self) -> list[dict]:
@@ -46,17 +49,33 @@ class StockInfor(rx.State):
         
     def set_ticker(self, value: str):
         self.ticker = value.upper()  # Convert to uppercase for consistency
-
+    
+    @rx.event(background=True)
     async def handle_submit(self):
         import httpx 
-        async with httpx.AsyncClient() as client:
-            # predict_response = await client.post(f"http://backend:8000/predict/{self.ticker}")
-            # crawl_response = await client.get(f"http://backend:8000/crawl/{self.ticker}")
-            predict_response = await client.post(f"http://localhost:8000/predict/{self.ticker}")
-            crawl_response = await client.get(f"http://localhost:8000/crawl/{self.ticker}")
-            if predict_response.status_code == 200:
-                self.predict_result = predict_response.json()
-            if crawl_response.status_code == 200:
-                self.crawl_result = crawl_response.json()
+
+        async with self:
+            self.is_loading = True
+        
+        try:
+            # Update state within context manager
+            async with self:
+                # Make the HTTP requests
+                async with httpx.AsyncClient() as client:
+                    api_url = os.getenv("API_URL", "http://0.0.0.0:8000")
+                    crawl_response = await client.get(f"{api_url}/crawl/{self.ticker}")
+                    await asyncio.sleep(2)
+                    predict_response = await client.post(f"{api_url}/predict/{self.ticker}")
+                if predict_response.status_code == 200:
+                    self.predict_result = predict_response.json()
+                if crawl_response.status_code == 200:
+                    self.crawl_result = crawl_response.json()
+
+        except Exception as e:
+            print(f"Error in handle_submit: {str(e)}")
+        finally:
+            # Ensure loading state is always reset
+            async with self:
+                self.is_loading = False
 
 
